@@ -250,7 +250,7 @@ int oufs_find_open_bit(unsigned char value)
     else 
     {
       first++;
-      value >> 1;
+      value = value >> 1;
     }
   }
 
@@ -269,7 +269,7 @@ int oufs_format_disk(char  *virtual_disk_name)
 
   BLOCK theblock;
   // Write 0 to every block
-  for (int i = 0; i < 128; i++)
+  for (int i = 0; i < N_BLOCKS_IN_DISK; i++)
   {
     vdisk_read_block(i, &theblock);
     memset(&theblock, 0, BLOCK_SIZE);
