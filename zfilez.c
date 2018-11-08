@@ -10,7 +10,14 @@ int main(int argc, char** argv)
   // Open virtual disk
   vdisk_disk_open(disk_name);
 
-  oufs_list("/", "/");
+  if (argc == 1)
+    // No path supplied, use cwd
+    oufs_list(cwd, "");
+  else
+  {
+    // Path is supplied, so send both the path amd the cwd
+    oufs_list(cwd, argv[1]);
+  }
 
   // Close vdisk
   vdisk_disk_close();
