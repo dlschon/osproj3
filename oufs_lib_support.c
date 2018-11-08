@@ -310,6 +310,7 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
 
 int oufs_list(char *cwd, char *path)
 {
+
   char* filelist[20];
   if (!strcmp(path, "") && !strcmp(cwd, "/") || !strcmp(path, "/"))
   {
@@ -320,7 +321,7 @@ int oufs_list(char *cwd, char *path)
     DIRECTORY_ENTRY entry = root_block.directory.entry[i];
     while (entry.inode_reference != UNALLOCATED_INODE)
     {
-      printf(entry.name);
+      printf("%s\n", entry.name);
       i++;
       entry = root_block.directory.entry[i];
     }

@@ -7,7 +7,12 @@ int main(int argc, char** argv)
   char disk_name[MAX_PATH_LENGTH];
   oufs_get_environment(cwd, disk_name);
   
-  oufs_list(cwd, disk_name);
+  // Open virtual disk
+  vdisk_disk_open(virtual_disk_name);
+
+  oufs_list("/", "/");
+
+  vdisk_disk_close();
 
   return 0;
 }
