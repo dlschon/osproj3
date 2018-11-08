@@ -305,5 +305,24 @@ int oufs_format_disk(char  *virtual_disk_name)
 
 int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERENCE *child, char *local_name)
 {
+  return 0;
+}
 
+int oufs_list(char *cwd, char *path)
+{
+  char* filelist[];
+  if (!strcmp(path, "") && !strcmp(cwd, "/") || !strcmp(path, "/"))
+  {
+    DIRECTORY_BLOCK root_block;
+    vdisk_read_block(N_INODES + 1, root_block);
+
+    int i = 0;
+    DIRECTORY_ENTRY entry = root_block.entry[i];
+    while (entry != NULL)
+    {
+      printf(entry.name);
+      i++;
+      entry = root_block.entry[i];
+    }
+  }
 }
