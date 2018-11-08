@@ -1,5 +1,4 @@
 all: zformat.c
-	gcc vdisk.c oufs_lib_support.c -o zformat
+	gcc vdisk.c oufs_lib_support.c zformat.c -o zformat
 clean: zformat.c
 	rm ./zformat
-
