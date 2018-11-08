@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "oufs_lib.h"
 
-#define debug 0
+#define debug 1
 
 /**
  * Read the ZPWD and ZDISK environment variables & copy their values into cwd and disk_name.
@@ -255,4 +255,55 @@ int oufs_find_open_bit(unsigned char value)
   }
 
 	return -1;
+}
+/**
+ *  Format the disk given a virtual disk name
+ * 
+ *  @param virtual_disk_name name of the virtual disk
+ *  @return success code
+ */
+int oufs_format_disk(char  *virtual_disk_name)
+{
+  // Open virtual disk
+  vdisk_disk_open(virtual_disk_name);
+
+  BLOCK theblock;
+  // Write 0 to every block
+  for (int i = 0; i < 128; i++)
+  {
+    vdisk_read_block(i, &theblock);
+    memset(&theblock, 0, BLOCK_SIZE);
+    vdisk_write_block(i, &theblock);
+  }
+
+  // Allocate master block, 8 inode blocks, and first data block
+  for (int i = 0; i < N_INODE_BLOCKS + 2; i++)
+    oufs_allocate_new_block();
+
+  // Mark first inode as allocated
+  INODE_REFERENCE ref = oufs_allocate_new_inode();
+  BLOCK_REFERENCE first_block = 1;
+
+  // Set the first inode
+  vdisk_read_block(first_block, &theblock);
+  theblock.inodes.inode[0].type = IT_DIRECTORY;
+  theblock.inodes.inode[0].n_references = 1;
+  theblock.inodes.inode[0].data[0] = N_INODE_BLOCKS + 1;
+  theblock.inodes.inode[0].size = 2;
+  vdisk_write_block(first_block, &theblock);
+
+  // Make the directory in the first open data
+  vdisk_read_block(N_INODE_BLOCKS + 1, &theblock);
+  oufs_clean_directory_block(ref, ref, &theblock);
+  vdisk_write_block(N_INODE_BLOCKS + 1, &theblock);
+
+  // Close the virtual disk
+  vdisk_disk_close();
+
+  return 0;
+}
+
+int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERENCE *child, char *local_name)
+{
+
 }
