@@ -310,15 +310,15 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
 
 int oufs_list(char *cwd, char *path)
 {
-  char* filelist[];
+  char* filelist[20];
   if (!strcmp(path, "") && !strcmp(cwd, "/") || !strcmp(path, "/"))
   {
-    DIRECTORY_BLOCK root_block;
+    BLOCK root_block;
     vdisk_read_block(N_INODES + 1, root_block);
 
     int i = 0;
-    DIRECTORY_ENTRY entry = root_block.entry[i];
-    while (entry != NULL)
+    DIRECTORY_ENTRY entry = root_block.directory.entry[i];
+    while (entry.inode_reference != UNALLOCATED_INODE)
     {
       printf(entry.name);
       i++;
