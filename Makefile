@@ -1,4 +1,4 @@
-all: zformat zinspect
+all: zformat zinspect zfilez
 
 .c.o:
 	gcc -c $< -o $@

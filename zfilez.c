@@ -8,7 +8,7 @@ int main(int argc, char** argv)
   oufs_get_environment(cwd, disk_name);
   
   // Open virtual disk
-  vdisk_disk_open(virtual_disk_name);
+  vdisk_disk_open(disk_name);
 
   oufs_list("/", "/");
 
