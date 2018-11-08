@@ -407,12 +407,21 @@ int oufs_list(char *cwd, char *path)
   // Find the file
   oufs_find_file(cwd, path, parent, child, local_name);
 
+  // get inode object
+  INODE inode;
+  oufs_read_inode_by_reference(child, inode);
+
+  // Get data block pointed to by inode
+  BLOCK_REFERENCE blockref = inode.data[0];
+  BLOCK theblock;
+  vdisk_read_block(blockref, $theblock);
+
   // we're at the end of the path, so list the things
   for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
   {
-    if (child.entry[i].inode_reference != UNALLOCATED_INODE)
+    if (theblock.entry[i].inode_reference != UNALLOCATED_INODE)
     {
-      printf("%s\n", child.entry[i].name);
+      printf("%s\n", theblock.entry[i].name);
     }
   }
 
