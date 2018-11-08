@@ -310,8 +310,6 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
 
 int oufs_list(char *cwd, char *path)
 {
-  // Open virtual disk
-  vdisk_disk_open(virtual_disk_name);
   
   char* filelist[20];
   if (!strcmp(path, "") && !strcmp(cwd, "/") || !strcmp(path, "/"))
@@ -326,6 +324,5 @@ int oufs_list(char *cwd, char *path)
     }
   }
 
-  vdisk_disk_close();
   return 0;
 }
