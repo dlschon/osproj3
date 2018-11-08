@@ -12,11 +12,11 @@ int main(int argc, char** argv)
 
   if (argc == 1)
     // No path supplied, use cwd
-    oufs_list(cwd, "");
+    oufs_list(strdup(cwd), "");
   else
   {
     // Path is supplied, so send both the path amd the cwd
-    oufs_list(cwd, argv[1]);
+    oufs_list(strdup(cwd), strdup(argv[1]));
   }
 
   // Close vdisk
