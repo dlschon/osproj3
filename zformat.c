@@ -14,7 +14,7 @@ int main()
   // Write 0 to every block
   for (int i = 0; i < 128; i++)
   {
-    union theblock;
+    BLOCK theblock;
     vdisk_read_block(i, theblock);
     memset(&theblock, 0, BLOCK_SIZE);
     vdisk_write_block(i, theblock);
