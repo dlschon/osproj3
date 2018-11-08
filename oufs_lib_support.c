@@ -315,7 +315,7 @@ int oufs_list(char *cwd, char *path)
   if (!strcmp(path, "") && !strcmp(cwd, "/") || !strcmp(path, "/"))
   {
     BLOCK root_block;
-    vdisk_read_block(N_INODES + 1, &root_block);
+    vdisk_read_block(N_INODE_BLOCKS + 1, &root_block);
 
     for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
     {
