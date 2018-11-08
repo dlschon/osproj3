@@ -239,7 +239,7 @@ int oufs_read_inode_by_reference(INODE_REFERENCE i, INODE *inode)
  *  @return index of the first 0, 0 being the rightmost bit
  *         -1 = an error has occurred
  */
-int oufs_find_open_bit(unsigned char value);
+int oufs_find_open_bit(unsigned char value)
 {
   int first = 0;
 
