@@ -142,6 +142,7 @@ BLOCK_REFERENCE oufs_allocate_new_block()
   // Done
   return(block_reference);
 }
+
 /**
  * Allocate a new inode block
  *
@@ -201,31 +202,6 @@ BLOCK_REFERENCE oufs_allocate_new_inode()
   // Done
   return(inode_reference);
 }
-  // Found an available data block 
-
-  // Set the block allocated bit
-  // Find the FIRST bit in the byte that is 0 (we scan in bit order: 0 ... 7)
-  int block_bit = oufs_find_open_bit(block.master.block_allocated_flag[block_byte]);
-
-  // Now set the bit in the allocation table
-  block.master.block_allocated_flag[block_byte] |= (1 << block_bit);
-
-  // Write out the updated master block
-  vdisk_write_block(MASTER_BLOCK_REFERENCE, &block);
-
-  if(debug)
-    fprintf(stderr, "Allocating block=%d (%d)\n", block_byte, block_bit);
-
-  // Compute the block index
-  BLOCK_REFERENCE block_reference = (block_byte << 3) + block_bit;
-
-  if(debug)
-    fprintf(stderr, "Allocating block=%d\n", block_reference);
-  
-  // Done
-  return(block_reference);
-}
-
 
 /**
  *  Given an inode reference, read the inode from the virtual disk.
