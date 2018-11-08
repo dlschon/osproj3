@@ -303,33 +303,53 @@ int oufs_format_disk(char  *virtual_disk_name)
   return 0;
 }
 
+/**
+ * Tries to get a file in the file system
+ * @param cwd current working directory
+ * @param path absolute or relative path of file to look for
+ * @param parent parent inode of the found file (output)
+ * @param child inode of the found file
+ * @param local_name name of the found file
+ * @return 1 if the file was found, 0 if not
+ */
+
 int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERENCE *child, char *local_name)
 {
-  return 0;
-}
-
-int oufs_list(char *cwd, char *path)
-{
-  char* filelist[20];
-
   // Find the directory to list, either a supplied path or the cwd
-  char *listdir;
+  char listdir[MAX_PATH_LENGTH];
   if (!strcmp(path, ""))
-    listdir = strdup(path);
-  else 
+    // Path is blank so just use the cwd
     listdir = strdup(cwd);
+  else 
+  {
+    // Path is supplied so use that
+    // check if supplied path is relative 
+    if (path[0] == '/')
+    {
+      // path is absolute, no further work need by done
+      listdir = strdup(path);
+    }
+    else
+    {
+      // Path is relative. Concat cwd and path into listdir
+      memset(listdir, 0, MAX_PATH_LENGTH);
+      strcat(listdir, cwd);
+      strcat(listdir, "/");
+      strcat(listdir, path);
+    }
+  }
 
-  // Set current block to root
+  // Declare some variables
   BLOCK_REFERENCE current_block = N_INODE_BLOCKS + 1;
-
-  // Declare block variable
   BLOCK theblock;
+  INODE_REFERENCE ref = 0;
+  INODE_REFERENCE lastref = 0;
 
   // Tokenize the path
   char *token = strtok(listdir, "/");
+  char *lasttoken = strdup(token);
   while (token != NULL)
   {
-    INODE_REFERENCE ref = 0;
 
     // Check if the expected token exists in this directory
     int flag = 0;
@@ -342,16 +362,14 @@ int oufs_list(char *cwd, char *path)
         {
           // found it!
           flag = 1;
+          lastref = ref;
           ref = theblock.directory.entry[i].inode_reference;
 
           // load the inode
-          BLOCK_REFERENCE inode_block_ref = ref / 8 + 1;
-          short inode_index = ref % 8;
-          BLOCK inodeblock;
-          vdisk_read_block(inode_block_ref, &inodeblock);
+          oufs_read_inode_by_reference(ref, &inode);
 
           // Grab the next level block reference
-          current_block = inodeblock.inodes.inode[inode_index].data[0];
+          current_block = inode.data[0];
         }
       }
     }
@@ -360,23 +378,45 @@ int oufs_list(char *cwd, char *path)
     {
       if (debug)
         fprintf(stderr, "directory does not exist\n");
-      return -1;
+      return 0;
     }
 
     // Try to get the next token
+    char *lasttoken = strdup(token);
     token = strtok(NULL, "/");
 
   } // end while
 
+  // We're at the end of the path and we have presumably found the file. set the return values
+  child = ref;
+  parent = lastref;
+  local_name = lasttoken;
+
+  return 1;
+}
+
+int oufs_list(char *cwd, char *path)
+{
+  char* filelist[20];
+
+  // Declare some variables which will be assigned by find_file
+  INODE_REFERENCE child;
+  INODE_REFERENCE parent;
+  char* local_name;
+
+  // Find the file
+  oufs_find_file(cwd, path, parent, child, local_name);
+  child.entry[i]
+
   // we're at the end of the path, so list the things
-  vdisk_read_block(current_block, &theblock);
   for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
   {
-    if (theblock.directory.entry[i].inode_reference != UNALLOCATED_INODE)
+    if (child.entry[i].inode_reference != UNALLOCATED_INODE)
     {
-      printf("%s\n", theblock.directory.entry[i].name);
+      printf("%s\n", child.entry[i].name);
     }
   }
+
 
   return 0;
 }
