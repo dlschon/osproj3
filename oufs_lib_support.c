@@ -334,13 +334,13 @@ int oufs_list(char *cwd, char *path)
     vdisk_read_block(current_block, &theblock);
     for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
     {
-      if (block.directory.entry[i].inode_reference != UNALLOCATED_INODE)
+      if (theblock.directory.entry[i].inode_reference != UNALLOCATED_INODE)
       {
-        if (!strcmp(block.directory.entry[i].name, token))
+        if (!strcmp(theblock.directory.entry[i].name, token))
         {
           // found it!
           flag = 1;
-          ref = block.directory.entry[i].inode_reference;
+          ref = theblock.directory.entry[i].inode_reference;
 
           // load the inode
           BLOCK_REFERENCE inode_block_ref = ref / 8 + 1;
@@ -349,7 +349,7 @@ int oufs_list(char *cwd, char *path)
           vdisk_read_block(inode_block_ref, &inodeblock);
 
           // Grab the next level block reference
-          current_block = inodeblock.inode.data[0];
+          current_block = inodeblock.inodes.data[0];
         }
       }
     }
@@ -370,9 +370,9 @@ int oufs_list(char *cwd, char *path)
       vdisk_read_block(current_block, &theblock);
       for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
       {
-        if (block.directory.entry[i].inode_reference != UNALLOCATED_INODE)
+        if (theblock.directory.entry[i].inode_reference != UNALLOCATED_INODE)
         {
-          printf("%s\n", block.directory.entry[i].name);
+          printf("%s\n", theblock.directory.entry[i].name);
         }
       }
     }
