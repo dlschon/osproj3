@@ -321,7 +321,7 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
 
   if (!strcmp(path, ""))
     // Path is blank so just use the cwd
-    strcat(listdir, cwd)
+    strcat(listdir, cwd);
   else 
   {
     // Path is supplied so use that
@@ -329,7 +329,7 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
     if (path[0] == '/')
     {
       // path is absolute, no further work need by done
-      strcat(listdir, path)
+      strcat(listdir, path);
     }
     else
     {
