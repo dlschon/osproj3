@@ -6,7 +6,7 @@ int main()
   // Fetch the key environment vars
   char cwd[MAX_PATH_LENGTH];
   char disk_name[MAX_PATH_LENGTH];
-  oufs_get_envirnment(cwd, disk_name);
+  oufs_get_environment(cwd, disk_name);
   
   // Open virtual disk
   vdisk_disk_open(disk_name);
