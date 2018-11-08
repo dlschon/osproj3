@@ -340,7 +340,6 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
       strcat(listdir, path);
     }
   }
-
   // Declare some variables
   BLOCK_REFERENCE current_block = N_INODE_BLOCKS + 1;
   BLOCK theblock;
@@ -349,7 +348,9 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
 
   // Tokenize the path
   char *token = strtok(listdir, "/");
-  char *lasttoken = strdup(token);
+  char lasttoken[MAX_PATH_LENGTH];
+  memset(lasttoken, 0, MAX_PATH_LENGTH);
+  lasttoken[0] = '/';
   while (token != NULL)
   {
 
@@ -385,7 +386,8 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
     }
 
     // Try to get the next token
-    char *lasttoken = strdup(token);
+    memset(lasttoken, 0, MAX_PATH_LENGTH);
+    strncpy(lasttoken, token, sizeof(lasttoken));
     token = strtok(NULL, "/");
 
   } // end while
