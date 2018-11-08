@@ -268,11 +268,11 @@ int oufs_format_disk(char  *virtual_disk_name)
   vdisk_disk_open(virtual_disk_name);
 
   BLOCK theblock;
+  memset(&theblock, 0, BLOCK_SIZE);
+
   // Write 0 to every block
   for (int i = 0; i < N_BLOCKS_IN_DISK; i++)
   {
-    vdisk_read_block(i, &theblock);
-    memset(&theblock, 0, BLOCK_SIZE);
     vdisk_write_block(i, &theblock);
   }
 
@@ -312,15 +312,18 @@ int oufs_list(char *cwd, char *path)
 {
   char* filelist[20];
 
-  // Set current block to root
-  BLOCK_REFERENCE current_block = N_INODE_BLOCKS + 1;
-
   // Find the directory to list, either a supplied path or the cwd
   char *listdir;
   if (!strcmp(path, ""))
     listdir = strdup(path);
   else 
     listdir = strdup(cwd);
+
+  // Set current block to root
+  BLOCK_REFERENCE current_block = N_INODE_BLOCKS + 1;
+
+  // Declare block variable
+  BLOCK theblock;
 
   // Tokenize the path
   char *token = strtok(listdir, "/");
@@ -330,7 +333,6 @@ int oufs_list(char *cwd, char *path)
 
     // Check if the expected token exists in this directory
     int flag = 0;
-    BLOCK theblock;
     vdisk_read_block(current_block, &theblock);
     for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
     {
@@ -364,17 +366,15 @@ int oufs_list(char *cwd, char *path)
     // Try to get the next token
     token = strtok(NULL, "/");
 
-    // we're at the end of the path, so list the things
-    if (token == NULL)
+  } // end while
+
+  // we're at the end of the path, so list the things
+  vdisk_read_block(current_block, &theblock);
+  for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
+  {
+    if (theblock.directory.entry[i].inode_reference != UNALLOCATED_INODE)
     {
-      vdisk_read_block(current_block, &theblock);
-      for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
-      {
-        if (theblock.directory.entry[i].inode_reference != UNALLOCATED_INODE)
-        {
-          printf("%s\n", theblock.directory.entry[i].name);
-        }
-      }
+      printf("%s\n", theblock.directory.entry[i].name);
     }
   }
 
