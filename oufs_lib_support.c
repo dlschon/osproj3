@@ -349,7 +349,7 @@ int oufs_list(char *cwd, char *path)
           vdisk_read_block(inode_block_ref, &inodeblock);
 
           // Grab the next level block reference
-          current_block = inodeblock.inodes.data[0];
+          current_block = inodeblock.inodes.inode[inode_index].data[0];
         }
       }
     }
