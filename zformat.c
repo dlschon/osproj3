@@ -15,9 +15,9 @@ int main()
   for (int i = 0; i < 128; i++)
   {
     BLOCK theblock;
-    vdisk_read_block(i, theblock);
+    vdisk_read_block(i, &theblock);
     memset(&theblock, 0, BLOCK_SIZE);
-    vdisk_write_block(i, theblock);
+    vdisk_write_block(i, &theblock);
   }
 
   // Allocate master block, 8 inode blocks, and first data block
