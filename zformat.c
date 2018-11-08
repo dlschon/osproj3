@@ -29,17 +29,17 @@ int main()
   BLOCK_REFERENCE first_block = 1;
 
   // Set the first inode
-  vdisk_read_block(first_block, &theblock)
+  vdisk_read_block(first_block, &theblock);
   theblock.inodes.inode[0].type = IT_DIRECTORY;
   theblock.inodes.inode[0].n_references = 1;
   theblock.inodes.inode[0].data[0] = N_INODE_BLOCKS + 1;
   theblock.inodes.inode[0].size = 2;
-  vdisk_write_block(first_block, &theblock)
+  vdisk_write_block(first_block, &theblock);
 
   // Make the directory in the first open data
-  vdisk_read_block(N_INODE_BLOCKS + 1, &theblock)
+  vdisk_read_block(N_INODE_BLOCKS + 1, &theblock);
   oufs_clean_directory_block(ref, ref, &theblock);
-  vdisk_write_block(N_INODE_BLOCKS + 1, &theblock)
+  vdisk_write_block(N_INODE_BLOCKS + 1, &theblock);
 
   return 0;
 }
