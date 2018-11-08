@@ -321,8 +321,8 @@ int oufs_list(char *cwd, char *path)
 
     for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
     {
-      if (root_dir.directory.entry[i].inode_reference != UNALLOCATED_INODE)
-        printf("%s\n", root_dir.directory.entry[i]);
+      if (root_block.directory.entry[i].inode_reference != UNALLOCATED_INODE)
+        printf("%s\n", root_block.directory.entry[i]);
     }
   }
 
