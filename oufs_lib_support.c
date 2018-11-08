@@ -310,17 +310,71 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
 
 int oufs_list(char *cwd, char *path)
 {
-  
   char* filelist[20];
-  if (!strcmp(path, "") && !strcmp(cwd, "/") || !strcmp(path, "/"))
-  {
-    BLOCK root_block;
-    vdisk_read_block(N_INODE_BLOCKS + 1, &root_block);
 
+  // Set current block to root
+  BLOCK_REFERENCE current_block = N_INODE_BLOCKS + 1;
+
+  // Find the directory to list, either a supplied path or the cwd
+  char *listdir;
+  if (!strcmp(path, ""))
+    listdir = strdup(path);
+  else 
+    listdir = strdup(cwd);
+
+  // Tokenize the path
+  char *token = strtok(listdir, "/");
+  while (token != NULL)
+  {
+    INODE_REFERENCE ref = 0;
+
+    // Check if the expected token exists in this directory
+    int flag = 0;
+    BLOCK theblock;
+    vdisk_read_block(current_block, &theblock);
     for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
     {
-      if (root_block.directory.entry[i].inode_reference != UNALLOCATED_INODE)
-        printf("%s\n", root_block.directory.entry[i].name);
+      if (block.directory.entry[i].inode_reference != UNALLOCATED_INODE)
+      {
+        if (!strcmp(block.directory.entry[i].name, token))
+        {
+          // found it!
+          flag = 1;
+          ref = block.directory.entry[i].inode_reference;
+
+          // load the inode
+          BLOCK_REFERENCE inode_block_ref = ref / 8 + 1;
+          short inode_index = ref % 8;
+          BLOCK inodeblock;
+          vdisk_read_block(inode_block_ref, &inodeblock);
+
+          // Grab the next level block reference
+          current_block = inodeblock.inode.data[0];
+        }
+      }
+    }
+
+    if (flag == 0)
+    {
+      if (debug)
+        fprintf(stderr, "directory does not exist\n");
+      return -1;
+    }
+
+    // Try to get the next token
+    token = strtok(NULL, "/");
+
+    // we're at the end of the path, so list the things
+    if (token == NULL)
+    {
+      vdisk_read_block(current_block, &theblock);
+      for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
+      {
+        if (block.directory.entry[i].inode_reference != UNALLOCATED_INODE)
+        {
+          printf("%s\n", block.directory.entry[i].name);
+        }
+      }
     }
   }
 
