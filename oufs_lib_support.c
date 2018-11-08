@@ -366,6 +366,7 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
           ref = theblock.directory.entry[i].inode_reference;
 
           // load the inode
+          INODE inode;
           oufs_read_inode_by_reference(ref, &inode);
 
           // Grab the next level block reference
