@@ -142,6 +142,89 @@ BLOCK_REFERENCE oufs_allocate_new_block()
   // Done
   return(block_reference);
 }
+/**
+ * Allocate a new inode block
+ *
+ * If one is found, then the corresponding bit in the block allocation table is set
+ *
+ * @return The index of the allocated data block.  If no blocks are available,
+ * then UNALLOCATED_BLOCK is returned
+ *
+ */
+BLOCK_REFERENCE oufs_allocate_new_inode()
+{
+  BLOCK block;
+  // Read the master block
+  vdisk_read_block(MASTER_BLOCK_REFERENCE, &block);
+
+  // Scan for an available block
+  int inode_byte;
+  int flag;
+
+  // Loop over each byte in the allocation table.
+  for(inode_byte = 0, flag = 1; flag && inode_byte < (N_BLOCKS_IN_DISK / 8); ++inode_byte) {
+    if(block.master.inode_allocated_flag[inode_byte] != 0xff) {
+      // Found a byte that has an opening: stop scanning
+      flag = 0;
+      break;
+    };
+  };
+  // Did we find a candidate byte in the table?
+  if(flag == 1) {
+    // No
+    if(debug)
+      fprintf(stderr, "No inode\n");
+    return(UNALLOCATED_INODE);
+  }
+
+  // Found an available data block 
+
+  // Set the block allocated bit
+  // Find the FIRST bit in the byte that is 0 (we scan in bit order: 0 ... 7)
+  int inode_bit = oufs_find_open_bit(block.master.inode_allocated_flag[inode_byte]);
+
+  // Now set the bit in the allocation table
+  block.master.inode_allocated_flag[inode_byte] |= (1 << inode_bit);
+
+  // Write out the updated master block
+  vdisk_write_block(MASTER_BLOCK_REFERENCE, &block);
+
+  if(debug)
+    fprintf(stderr, "Allocating inode=%d (%d)\n", inode_byte, inode_bit);
+
+  // Compute the block index
+  INODE_REFERENCE inode_reference = (inode_byte << 3) + inode_bit;
+
+  if(debug)
+    fprintf(stderr, "Allocating inode=%d\n", inode_reference);
+  
+  // Done
+  return(inode_reference);
+}
+  // Found an available data block 
+
+  // Set the block allocated bit
+  // Find the FIRST bit in the byte that is 0 (we scan in bit order: 0 ... 7)
+  int block_bit = oufs_find_open_bit(block.master.block_allocated_flag[block_byte]);
+
+  // Now set the bit in the allocation table
+  block.master.block_allocated_flag[block_byte] |= (1 << block_bit);
+
+  // Write out the updated master block
+  vdisk_write_block(MASTER_BLOCK_REFERENCE, &block);
+
+  if(debug)
+    fprintf(stderr, "Allocating block=%d (%d)\n", block_byte, block_bit);
+
+  // Compute the block index
+  BLOCK_REFERENCE block_reference = (block_byte << 3) + block_bit;
+
+  if(debug)
+    fprintf(stderr, "Allocating block=%d\n", block_reference);
+  
+  // Done
+  return(block_reference);
+}
 
 
 /**
@@ -173,7 +256,27 @@ int oufs_read_inode_by_reference(INODE_REFERENCE i, INODE *inode)
   return(-1);
 }
 
+/**
+ *  Given a byte, find the first open bit. That is, the first 0 from the right
+ *
+ *  @param value the byte to check
+ *  @return index of the first 0, 0 being the rightmost bit
+ *         -1 = an error has occurred
+ */
 int oufs_find_open_bit(unsigned char value);
 {
-	return 0;
+  int first = 0;
+
+  while (first < 8)
+  {
+    if (!(1 & value))
+      return first;
+    else 
+    {
+      first++;
+      value >> 1;
+    }
+  }
+
+	return -1;
 }

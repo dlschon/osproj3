@@ -20,6 +20,7 @@ int oufs_rmdir(char *cwd, char *path);
 void oufs_clean_directory_block(INODE_REFERENCE self, INODE_REFERENCE parent, BLOCK *block);
 void oufs_clean_directory_entry(DIRECTORY_ENTRY *entry);
 BLOCK_REFERENCE oufs_allocate_new_block();
+INODE_REFERENCE oufs_allocate_new_inode();
 
 // Helper functions to be provided
 int oufs_find_open_bit(unsigned char value);
