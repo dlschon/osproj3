@@ -406,7 +406,6 @@ int oufs_list(char *cwd, char *path)
 
   // Find the file
   oufs_find_file(cwd, path, parent, child, local_name);
-  child.entry[i]
 
   // we're at the end of the path, so list the things
   for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
