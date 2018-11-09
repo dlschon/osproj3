@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <libgen.h>
+#include <string.h>
 #include "oufs_lib.h"
 
 #define debug 1
