@@ -494,9 +494,10 @@ int oufs_mkdir(char *cwd, char *path)
   // Make a new inode for the new directory
   INODE_REFERENCE new_inode_ref = oufs_allocate_new_inode();
   INODE new_inode;
-  oufs_read_inode_by_reference(new_inode_ref, new_inode);
+  oufs_read_inode_by_reference(new_inode_ref, &new_inode);
 
   // Clean the directory
+  BLOCK theblock;
   vdisk_read_block(new_dir, &theblock);
   oufs_clean_directory_block(child, parent, &theblock);
 
@@ -510,7 +511,7 @@ int oufs_mkdir(char *cwd, char *path)
 
   // Update entries in parent block
   INODE parent_inode;
-  oufs_read_inode_by_reference(parent, parent_inode);
+  oufs_read_inode_by_reference(parent, &parent_inode);
   BLOCK_REFERENCE parent_block_ref = parent_inode.data[0];
   vdisk_read_block(parent_block_ref, &theblock);
 
