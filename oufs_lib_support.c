@@ -407,9 +407,13 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
   } // end while
 
   // We're at the end of the path and we have presumably found the file. set the return values
-  child = ref;
-  parent = lastref;
+  child = &ref;
+  parent = &lastref;
   local_name = lasttoken;
+
+  printf("findfile: child - %d\n", *child);
+  printf("findfile: parent - %d\n", *parent);
+  printf("findfile: local name - %s\n", local_name);
 
   return 1;
 }
