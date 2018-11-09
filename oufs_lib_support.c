@@ -494,7 +494,7 @@ int oufs_mkdir(char *cwd, char *path)
   // Make a new inode for the new directory
   INODE_REFERENCE new_inode_ref = oufs_allocate_new_inode();
   INODE new_inode;
-  oufs_read _inode_by_reference(new_inode_ref, &new_inode);
+  oufs_read_inode_by_reference(new_inode_ref, &new_inode);
 
   // Clean the directory
   BLOCK theblock;
