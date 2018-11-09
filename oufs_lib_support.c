@@ -350,7 +350,7 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
   // Find the directory to list, either a supplied path or the cwd
   char listdir[MAX_PATH_LENGTH];
   memset(listdir, 0, MAX_PATH_LENGTH);
-  oufs_relative_path(cwd, path, listdir)
+  oufs_relative_path(cwd, path, listdir);
 
   // Declare some variables
   BLOCK_REFERENCE current_block = N_INODE_BLOCKS + 1;
@@ -446,8 +446,22 @@ int oufs_list(char *cwd, char *path)
   return 0;
 }
 
+/**
+ * makes a directory
+ * @param cwd current working directory
+ * @param path path to create
+ * @return status code
+ */
 int oufs_mkdir(char *cwd, char *path)
 {
-  char* dirname = dirname(path);
+  // Get relative path
+  char rel_path[MAX_PATH_LENGTH];
+  memset(rel_path, 0, MAX_PATH_LENGTH);
+  oufs_relative_path(cwd, path, rel_path);
+
+  // Get base and directory names
+  char* dirname = dirname(rel_path);
+  char* basename = basename(rel_path);
+
   return 0;
 }
