@@ -256,6 +256,38 @@ int oufs_find_open_bit(unsigned char value)
 
 	return -1;
 }
+
+/**
+ * Given the cwd and a path, give a path combining them
+ * @param cwd current working directory
+ * @param path working path
+ * @param rel_path the thing we're outputting
+ */
+char* oufs_relative_path(char* cwd, char* path, char* rel_path)
+{
+  if (!strcmp(path, ""))
+    // Path is blank so just use the cwd
+    strcat(rel_path, cwd);
+  else 
+  {
+    // Path is supplied so use that
+    // check if supplied path is relative 
+    if (path[0] == '/')
+    {
+      // path is absolute, no further work need by done
+      strcat(rel_path, path);
+    }
+    else
+    {
+      // Path is relative. Concat cwd and path into listdir
+      memset(rel_path, 0, MAX_PATH_LENGTH);
+      strcat(rel_path, cwd);
+      strcat(rel_path, "/");
+      strcat(rel_path, path);
+    }
+  }
+}
+
 /**
  *  Format the disk given a virtual disk name
  * 
@@ -318,28 +350,8 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
   // Find the directory to list, either a supplied path or the cwd
   char listdir[MAX_PATH_LENGTH];
   memset(listdir, 0, MAX_PATH_LENGTH);
+  oufs_relative_path(cwd, path, listdir)
 
-  if (!strcmp(path, ""))
-    // Path is blank so just use the cwd
-    strcat(listdir, cwd);
-  else 
-  {
-    // Path is supplied so use that
-    // check if supplied path is relative 
-    if (path[0] == '/')
-    {
-      // path is absolute, no further work need by done
-      strcat(listdir, path);
-    }
-    else
-    {
-      // Path is relative. Concat cwd and path into listdir
-      memset(listdir, 0, MAX_PATH_LENGTH);
-      strcat(listdir, cwd);
-      strcat(listdir, "/");
-      strcat(listdir, path);
-    }
-  }
   // Declare some variables
   BLOCK_REFERENCE current_block = N_INODE_BLOCKS + 1;
   BLOCK theblock;
@@ -431,5 +443,11 @@ int oufs_list(char *cwd, char *path)
   }
 
 
+  return 0;
+}
+
+int oufs_mkdir(char *cwd, char *path)
+{
+  char* dirname = dirname(path);
   return 0;
 }
