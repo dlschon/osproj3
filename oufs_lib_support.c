@@ -497,7 +497,7 @@ int oufs_mkdir(char *cwd, char *path)
   }
 
   // Allocated the new block
-  BLOCK_REFERENCE new_dir = oufs_allocate_new_block();
+  BLOCK_REFERENCE new_dir_block_ref = oufs_allocate_new_block();
 
   // Make a new inode for the new directory
   INODE_REFERENCE new_inode_ref = oufs_allocate_new_inode();
@@ -506,16 +506,16 @@ int oufs_mkdir(char *cwd, char *path)
 
   // Clean the directory
   BLOCK theblock;
-  vdisk_read_block(new_dir, &theblock);
+  vdisk_read_block(new_dir_block_ref, &theblock);
   oufs_clean_directory_block(new_inode_ref, new_dir_parent, &theblock);
 
   // Set the inode for the new directory
   new_inode.type = IT_DIRECTORY;
   new_inode.n_references = 1;
-  new_inode.data[0] = new_dir;
+  new_inode.data[0] = new_dir_block_ref;
   new_inode.size = 2;
 
-  vdisk_write_block(new_dir, &theblock);
+  vdisk_write_block(new_dir_block_ref, &theblock);
 
   // Update entries in parent block
   INODE parent_inode;
@@ -540,7 +540,7 @@ int oufs_mkdir(char *cwd, char *path)
   if (!wrote_entry)
   {
     if (debug)
-      fprintf(stderr, "Block is full!");
+      fprintf(stderr, "Directory is full!");
     return -1;
   }
 
