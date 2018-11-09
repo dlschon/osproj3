@@ -470,6 +470,8 @@ int oufs_mkdir(char *cwd, char *path)
   INODE_REFERENCE child;
   char* local_name;
 
+  INODE_REFERENCE new_dir_parent;
+
   // Parent directory must exist
   if (!oufs_find_file(cwd, dir, &parent, &child, local_name))
   {
@@ -478,6 +480,8 @@ int oufs_mkdir(char *cwd, char *path)
         fprintf(stderr, "mkdir: Parent directory does not exist!\n");
       return -1;
   }
+  else
+    new_dir_parent = child;
 
   // Child directory must not exist
   if (oufs_find_file(cwd, rel_path, &parent, &child, local_name))
@@ -499,7 +503,7 @@ int oufs_mkdir(char *cwd, char *path)
   // Clean the directory
   BLOCK theblock;
   vdisk_read_block(new_dir, &theblock);
-  oufs_clean_directory_block(child, parent, &theblock);
+  oufs_clean_directory_block(new_inode_ref, new_dir_parent, &theblock);
 
   // Set the inode for the new directory
   new_inode.type = IT_DIRECTORY;
@@ -511,7 +515,7 @@ int oufs_mkdir(char *cwd, char *path)
 
   // Update entries in parent block
   INODE parent_inode;
-  oufs_read_inode_by_reference(parent, &parent_inode);
+  oufs_read_inode_by_reference(new_dir_parent, &parent_inode);
   BLOCK_REFERENCE parent_block_ref = parent_inode.data[0];
   vdisk_read_block(parent_block_ref, &theblock);
 
