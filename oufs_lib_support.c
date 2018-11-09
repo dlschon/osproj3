@@ -462,8 +462,8 @@ int oufs_mkdir(char *cwd, char *path)
   oufs_relative_path(cwd, path, rel_path);
 
   // Get base and directory names
-  char* dirname = dirname(strdup(rel_path));
-  char* basename = basename(strdup(rel_path));
+  char* dir = dirname(strdup(rel_path));
+  char* base = basename(strdup(rel_path));
 
   return 0;
 }
