@@ -395,7 +395,7 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
     if (flag == 0)
     {
       if (debug)
-        fprintf(stderr, "directory does not exist\n");
+        fprintf(stderr, "find_file: directory does not exist\n");
       return 0;
     }
 
@@ -475,7 +475,7 @@ int oufs_mkdir(char *cwd, char *path)
   {
       // Parent directory does not exist
       if (debug)
-        fprintf(stderr, "Parent directory does not exist!");
+        fprintf(stderr, "mkdir: Parent directory does not exist!\n");
       return -1;
   }
 
@@ -484,7 +484,7 @@ int oufs_mkdir(char *cwd, char *path)
   {
       // Directory we are trying to make already exists
       if (debug)
-        fprintf(stderr, "Directory already exists");
+        fprintf(stderr, "mkdir: Directory already exists\n");
       return -1;
   }
 
@@ -494,7 +494,7 @@ int oufs_mkdir(char *cwd, char *path)
   // Make a new inode for the new directory
   INODE_REFERENCE new_inode_ref = oufs_allocate_new_inode();
   INODE new_inode;
-  oufs_read_inode_by_reference(new_inode_ref, &new_inode);
+  oufs_read _inode_by_reference(new_inode_ref, &new_inode);
 
   // Clean the directory
   BLOCK theblock;
@@ -524,6 +524,8 @@ int oufs_mkdir(char *cwd, char *path)
       strncpy(theblock.directory.entry[i].name, base, FILE_NAME_SIZE);
       theblock.directory.entry[i].inode_reference = new_inode_ref;
       wrote_entry = 1;
+      vdisk_write_block(parent_block_ref, &theblock);
+      break;
     }
   }
   
