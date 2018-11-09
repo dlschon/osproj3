@@ -424,7 +424,7 @@ int oufs_list(char *cwd, char *path)
   char* local_name;
 
   // Find the file
-  oufs_find_file(cwd, path, parent, child, local_name);
+  oufs_find_file(cwd, path, &parent, &child, local_name);
 
   // get inode object
   INODE inode;
@@ -464,6 +464,74 @@ int oufs_mkdir(char *cwd, char *path)
   // Get base and directory names
   char* dir = dirname(strdup(rel_path));
   char* base = basename(strdup(rel_path));
+
+  // Find file outputs
+  INODE_REFERENCE parent;
+  INODE_REFERENCE child;
+  char* local_name;
+
+  // Parent directory must exist
+  if (!oufs_find_file(cwd, dir, &parent, &child, local_name))
+  {
+      // Parent directory does not exist
+      if (debug)
+        fprintf(stderr, "Parent directory does not exist!");
+      return -1;
+  }
+
+  // Child directory must not exist
+  if (oufs_find_file(cwd, rel_path, &parent, &child, local_name))
+  {
+      // Directory we are trying to make already exists
+      if (debug)
+        fprintf(stderr, "Directory already exists");
+      return -1;
+  }
+
+  // Allocated the new block
+  BLOCK_REFERENCE new_dir = oufs_allocate_new_block();
+
+  // Make a new inode for the new directory
+  INODE_REFERENCE new_inode_ref = oufs_allocate_new_inode();
+  INODE new_inode;
+  oufs_read_inode_by_reference(new_inode_ref, new_inode);
+
+  // Clean the directory
+  vdisk_read_block(new_dir, &theblock);
+  oufs_clean_directory_block(child, parent, &theblock);
+
+  // Set the inode for the new directory
+  new_inode.type = IT_DIRECTORY;
+  new_inode.n_references = 1;
+  new_inode.data[0] = new_dir;
+  new_inode.size = 2;
+
+  vdisk_write_block(new_dir, &theblock);
+
+  // Update entries in parent block
+  INODE parent_inode;
+  oufs_read_inode_by_reference(parent, parent_inode);
+  BLOCK_REFERENCE parent_block_ref = parent_inode.data[0];
+  vdisk_read_block(parent_block_ref, &theblock);
+
+  // Find the first available entry in the block
+  int wrote_entry = 0;
+  for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
+  {
+    if (theblock.directory.entry[i].inode_reference == UNALLOCATED_INODE)
+    {
+      theblock.directory.entry[i].name = base;
+      theblock.directory.entry[i].inode_reference = new_inode_ref;
+      wrote_entry = 1;
+    }
+  }
+  
+  if (!wrote_entry)
+  {
+    if (debug)
+      fprintf(stderr, "Block is full!");
+    return -1;
+  }
 
   return 0;
 }
