@@ -521,7 +521,7 @@ int oufs_mkdir(char *cwd, char *path)
   {
     if (theblock.directory.entry[i].inode_reference == UNALLOCATED_INODE)
     {
-      theblock.directory.entry[i].name = base;
+      strncpy(theblock.directory.entry[i].name, base, FILE_NAME_SIZE);
       theblock.directory.entry[i].inode_reference = new_inode_ref;
       wrote_entry = 1;
     }
