@@ -1,4 +1,4 @@
-all: zformat zinspect zfilez zmkdir
+all: zformat zinspect zfilez zmkdir zrmdir
 
 .c.o:
 	gcc -c $< -o $@
@@ -11,6 +11,8 @@ zfilez: zfilez.c
 	gcc vdisk.c oufs_lib_support.c zfilez.c -o zfilez
 zmkdir: zmkdir.c
 	gcc vdisk.c oufs_lib_support.c zmkdir.c -o zmkdir
+zrmdir: zrmdir.c
+	gcc vdisk.c oufs_lib_support.c zrmdir.c -o zrmdir
 
 clean: 
-	rm ./zformat ./zinspect ./zfilez ./zmkdir
+	rm ./zformat ./zinspect ./zfilez ./zmkdir ./zrmdir
