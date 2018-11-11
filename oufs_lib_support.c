@@ -235,6 +235,36 @@ int oufs_read_inode_by_reference(INODE_REFERENCE i, INODE *inode)
 }
 
 /**
+ *  Given an inode reference, write the inode to the virtual disk.
+ *
+ *  @param i Inode reference (index into the inode list)
+ *  @param inode Pointer to an inode memory structure.  This structure will be
+ *                written to the disk)
+ *  @return 0 = successfully wrote the inode
+ *         -1 = an error has occurred
+ *
+ */
+int oufs_write_inode_by_reference(INODE_REFERENCE i, INODE *inode)
+{
+  if(debug)
+    fprintf(stderr, "Writing inode %d\n", i);
+
+  // Find the address of the inode block and the inode within the block
+  BLOCK_REFERENCE block = i / INODES_PER_BLOCK + 1;
+  int element = (i % INODES_PER_BLOCK);
+
+  BLOCK b;
+  if(vdisk_read_block(block, &b) == 0) {
+    // Successfully loaded the block: copy just this inode
+    b.inodes.inode[element] = *inode;
+    vdisk_write_block(block, &b)
+    return(0);
+  }
+  // Error case
+  return(-1);
+}
+
+/**
  *  Given a byte, find the first open bit. That is, the first 0 from the right
  *
  *  @param value the byte to check
@@ -513,12 +543,12 @@ int oufs_mkdir(char *cwd, char *path)
   new_inode.n_references = 1;
   new_inode.data[0] = new_dir_block_ref;
   new_inode.size = 2;
+  oufs_write_inode_by_reference(new_inode_ref, &new_inode);
 
   // Clean the directory
   BLOCK theblock;
   vdisk_read_block(new_dir_block_ref, &theblock);
   oufs_clean_directory_block(new_inode_ref, new_dir_parent, &theblock);
-
   vdisk_write_block(new_dir_block_ref, &theblock);
 
   // Update entries in parent block
