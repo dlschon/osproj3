@@ -737,20 +737,21 @@ int oufs_rmdir(char *cwd, char *path)
   INODE parent_inode;
   oufs_read_inode_by_reference(parent_inode_ref, &parent_inode);
   BLOCK_REFERENCE parent_block_ref = parent_inode.data[0];
-  vdisk_read_block(parent_block_ref, &theblock);
+  BLOCK parent_block;
+  vdisk_read_block(parent_block_ref, &parent_block);
 
   // Remove the directory's entry from its parent directory
   int removed_entry = 0;
   for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
   {
     // Does the directory entry point to the one we're deleting?
-    if (theblock.directory.entry[i].inode_reference == child_inode_ref)
+    if (parent_block.directory.entry[i].inode_reference == child_inode_ref)
     {
       // Set the empty entry to point to our new inode
-      strncpy(theblock.directory.entry[i].name, "", FILE_NAME_SIZE);
-      theblock.directory.entry[i].inode_reference = UNALLOCATED_INODE;
+      strncpy(parent_block.directory.entry[i].name, "", FILE_NAME_SIZE);
+      parent_block.directory.entry[i].inode_reference = UNALLOCATED_INODE;
       removed_entry = 1;
-      vdisk_write_block(parent_block_ref, &theblock);
+      vdisk_write_block(parent_block_ref, &parent_block);
 
       // Update file count in inode
       parent_inode.size--;
