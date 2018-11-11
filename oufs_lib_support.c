@@ -508,16 +508,17 @@ int oufs_mkdir(char *cwd, char *path)
   INODE new_inode;
   oufs_read_inode_by_reference(new_inode_ref, &new_inode);
 
-  // Clean the directory
-  BLOCK theblock;
-  vdisk_read_block(new_dir_block_ref, &theblock);
-  oufs_clean_directory_block(new_inode_ref, new_dir_parent, &theblock);
-
   // Set the inode for the new directory
   new_inode.type = IT_DIRECTORY;
   new_inode.n_references = 1;
   new_inode.data[0] = new_dir_block_ref;
   new_inode.size = 2;
+  oufs_write_inode_by_reference(new_inode_ref, &new_inode);
+
+  // Clean the directory
+  BLOCK theblock;
+  vdisk_read_block(new_dir_block_ref, &theblock);
+  oufs_clean_directory_block(new_inode_ref, new_dir_parent, &theblock);
 
   vdisk_write_block(new_dir_block_ref, &theblock);
 
