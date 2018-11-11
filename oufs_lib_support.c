@@ -513,7 +513,6 @@ int oufs_mkdir(char *cwd, char *path)
   new_inode.n_references = 1;
   new_inode.data[0] = new_dir_block_ref;
   new_inode.size = 2;
-  oufs_write_inode_by_reference(new_inode_ref, &new_inode);
 
   // Clean the directory
   BLOCK theblock;
