@@ -257,7 +257,7 @@ int oufs_write_inode_by_reference(INODE_REFERENCE i, INODE *inode)
   if(vdisk_read_block(block, &b) == 0) {
     // Successfully loaded the block: copy just this inode
     b.inodes.inode[element] = *inode;
-    vdisk_write_block(block, &b)
+    vdisk_write_block(block, &b);
     return(0);
   }
   // Error case
