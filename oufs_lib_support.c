@@ -702,7 +702,7 @@ int oufs_rmdir(char *cwd, char *path)
 
   // Get the inode object for the child directory
   INODE child_inode;
-  oufs_read_inode_by_reference(child_inode_ref, &child_inode;
+  oufs_read_inode_by_reference(child_inode_ref, &child_inode);
 
   // Inode must point to a directory
   if (child_inode.type != IT_DIRECTORY)
