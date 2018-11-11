@@ -407,8 +407,8 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
   } // end while
 
   // We're at the end of the path and we have presumably found the file. set the return values
-  child = &ref;
-  parent = &lastref;
+  *child = ref;
+  *parent = lastref;
   local_name = lasttoken;
 
   printf("findfile: child - %d\n", *child);
@@ -485,7 +485,10 @@ int oufs_mkdir(char *cwd, char *path)
       return -1;
   }
   else
+  {
     new_dir_parent = child;
+    printf("ndp: %d\n", new_dir_parent);
+  }
 
   // Child directory must not exist
   if (oufs_find_file(cwd, rel_path, &parent, &child, local_name))
@@ -501,6 +504,7 @@ int oufs_mkdir(char *cwd, char *path)
 
   // Make a new inode for the new directory
   INODE_REFERENCE new_inode_ref = oufs_allocate_new_inode();
+  printf("new inode ref: %d\n", new_inode_ref);
   INODE new_inode;
   oufs_read_inode_by_reference(new_inode_ref, &new_inode);
 
@@ -520,13 +524,16 @@ int oufs_mkdir(char *cwd, char *path)
   // Update entries in parent block
   INODE parent_inode;
   oufs_read_inode_by_reference(new_dir_parent, &parent_inode);
+  printf("parent inode ref: %d\n", new_dir_parent);
   BLOCK_REFERENCE parent_block_ref = parent_inode.data[0];
+  printf("parent block ref: %d\n", parent_block_ref);
   vdisk_read_block(parent_block_ref, &theblock);
 
   // Find the first available entry in the block
   int wrote_entry = 0;
   for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
   {
+    printf("%d: %d\n", i, theblock.directory.entry[i].inode_reference);
     if (theblock.directory.entry[i].inode_reference == UNALLOCATED_INODE)
     {
       strncpy(theblock.directory.entry[i].name, base, FILE_NAME_SIZE);
