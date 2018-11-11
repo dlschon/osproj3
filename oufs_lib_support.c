@@ -206,6 +206,54 @@ BLOCK_REFERENCE oufs_allocate_new_inode()
 }
 
 /**
+ * Given a block reference, mark that block as unallocated in the master table
+ * @param block_ref block reference of block to deallocate
+ * @return 0 if success, -1 if error
+ */
+int oufs_deallocate_block(BLOCK_REFERENCE block_ref)
+{
+  // Read the master block
+  BLOCK block;
+  vdisk_read_block(MASTER_BLOCK_REFERENCE, &block);
+
+  // Calculate the byte and bit to change
+  int block_bit = block_ref & 0b111;
+  int block_byte = block_ref >> 3;
+
+  // Flip the desired bit to 0
+  block.master.block_allocated_flag[block_byte] &= !(1 << block_bit);
+
+  // Write out the updated master block
+  vdisk_write_block(MASTER_BLOCK_REFERENCE, &block);
+
+  return 0;
+}
+
+/**
+ * Given a inode reference, mark that inode as unallocated in the master table
+ * @param inode_ref inode reference of inode to deallocate
+ * @return 0 if success, -1 if error
+ */
+int oufs_deallocate_inode(INODE_REFERENCE inode_ref)
+{
+  // Read the master block
+  BLOCK block;
+  vdisk_read_block(MASTER_BLOCK_REFERENCE, &block);
+
+  // Calculate the byte and bit to change
+  int inode_bit = inode_ref & 0b111;
+  int inode_byte = inode_ref >> 3;
+
+  // Flip the desired bit to 0
+  block.master.inode_allocated_flag[inode_byte] &= !(1 << inode_bit);
+
+  // Write out the updated master block
+  vdisk_write_block(MASTER_BLOCK_REFERENCE, &block);
+
+  return 0;
+}
+
+/**
  *  Given an inode reference, read the inode from the virtual disk.
  *
  *  @param i Inode reference (index into the inode list)
@@ -443,9 +491,9 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
 
   if (debug)
   {
-    printf("findfile: child - %d\n", *child);
-    printf("findfile: parent - %d\n", *parent);
-    printf("findfile: local name - %s\n", local_name);
+    fprintf(stderr, "findfile: child - %d\n", *child);
+    fprintf(stderr, "findfile: parent - %d\n", *parent);
+    fprintf(stderr, "findfile: local name - %s\n", local_name);
   }
 
   return 1;
@@ -510,7 +558,7 @@ int oufs_list(char *cwd, char *path)
   // Print the sorted list
   for (int i = 0; i < numFiles; i++)
   {
-    printf("%s\n", filelist[i]);
+    fprintf(stderr, "%s\n", filelist[i]);
   }
 
   return 0;
@@ -566,11 +614,11 @@ int oufs_mkdir(char *cwd, char *path)
   // Make a new inode for the new directory
   INODE_REFERENCE new_inode_ref = oufs_allocate_new_inode();
   if (debug)
-    printf("new inode ref: %d\n", new_inode_ref);
-  INODE new_inode;
-  oufs_read_inode_by_reference(new_inode_ref, &new_inode);
+    fprintf(stderr, "new inode ref: %d\n", new_inode_ref);
 
   // Set the inode for the new directory
+  INODE new_inode;
+  oufs_read_inode_by_reference(new_inode_ref, &new_inode);
   new_inode.type = IT_DIRECTORY;
   new_inode.n_references = 1;
   new_inode.data[0] = new_dir_block_ref;
@@ -593,12 +641,20 @@ int oufs_mkdir(char *cwd, char *path)
   int wrote_entry = 0;
   for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
   {
+    // Is the directory entry unallocated?
     if (theblock.directory.entry[i].inode_reference == UNALLOCATED_INODE)
     {
+      // Set the empty entry to point to our new inode
       strncpy(theblock.directory.entry[i].name, base, FILE_NAME_SIZE);
       theblock.directory.entry[i].inode_reference = new_inode_ref;
       wrote_entry = 1;
       vdisk_write_block(parent_block_ref, &theblock);
+
+      // Update file count in inode
+      parent_inode.size++;
+      oufs_write_inode_by_reference(new_dir_parent, &parent_inode);
+
+      // Exit the for loop
       break;
     }
   }
@@ -614,7 +670,7 @@ int oufs_mkdir(char *cwd, char *path)
 }
 
 /**
- * removes a directory
+ * Removes a directory
  * @param cwd current working directory
  * @param path path to create
  * @return status code
@@ -631,19 +687,85 @@ int oufs_rmdir(char *cwd, char *path)
   char* base = basename(strdup(rel_path));
 
   // Find file outputs
-  INODE_REFERENCE parent;
-  INODE_REFERENCE child;
+  INODE_REFERENCE parent_inode_ref;
+  INODE_REFERENCE child_inode_ref;
   char* local_name;
 
-  INODE_REFERENCE new_dir_parent;
-
-  // Child directory must exist
-  if (!oufs_find_file(cwd, rel_path, &parent, &child, local_name))
+  // Directory must exist
+  if (!oufs_find_file(cwd, rel_path, &parent_inode_ref, &child_inode_ref, local_name))
   {
       // Directory we are trying to make already exists
       if (debug)
-        fprintf(stderr, "mkdir: Directory already exists\n");
+        fprintf(stderr, "rmdir: Directory does not exist\n");
       return -1;
+  }
+
+  // Get the inode object for the child directory
+  INODE child_inode;
+  oufs_read_inode_by_reference(child_inode_ref, &child_inode;
+
+  // Inode must point to a directory
+  if (child_inode.type != IT_DIRECTORY)
+  {
+    if (debug)
+      fprintf(stderr, "rmdir: path must be a directory\n");
+    return -1;
+  }
+
+  // Directory must be empty
+  if (child_inode.size > 2)
+  {
+    if (debug)
+      fprintf(stderr, "rmdir: cannot remove non-empty directory\n");
+    return -1;
+  }
+
+  // Directory must not be . or ..
+  if (!strcmp(local_name, ".") || !strcmp(local_name, ".."))
+  {
+    if (debug)
+      fprintf(stderr, "rmdir: cannot remove . or ..\n");
+    return -1;
+  }
+
+  // Deallocate the block and inode in the master block
+  oufs_deallocate_inode(child_inode_ref);
+  BLOCK_REFERENCE child_block_ref = child_inode.data[0];
+  oufs_deallocate_block(child_block_ref);
+
+  // Read data for parent of deleted directory
+  INODE parent_inode;
+  oufs_read_inode_by_reference(parent_inode_ref, &parent_inode);
+  BLOCK_REFERENCE parent_block_ref = parent_inode.data[0];
+  vdisk_read_block(parent_block_ref, &theblock);
+
+  // Remove the directory's entry from its parent directory
+  int removed_entry = 0;
+  for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
+  {
+    // Does the directory entry point to the one we're deleting?
+    if (theblock.directory.entry[i].inode_reference == child_inode_ref)
+    {
+      // Set the empty entry to point to our new inode
+      strncpy(theblock.directory.entry[i].name, "", FILE_NAME_SIZE);
+      theblock.directory.entry[i].inode_reference = UNALLOCATED_INODE;
+      removed_entry = 1;
+      vdisk_write_block(parent_block_ref, &theblock);
+
+      // Update file count in inode
+      parent_inode.size--;
+      oufs_write_inode_by_reference(parent_inode_ref, &parent_inode);
+
+      // Exit the for loop
+      break;
+    }
+  }
+  
+  if (!removed_entry)
+  {
+    if (debug)
+      fprintf(stderr, "rmdir: failed to remove entry from parent\n");
+    return -1;
   }
 
   return 0;

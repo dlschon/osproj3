@@ -21,6 +21,8 @@ void oufs_clean_directory_block(INODE_REFERENCE self, INODE_REFERENCE parent, BL
 void oufs_clean_directory_entry(DIRECTORY_ENTRY *entry);
 BLOCK_REFERENCE oufs_allocate_new_block();
 INODE_REFERENCE oufs_allocate_new_inode();
+int oufs_deallocate_block(BLOCK_REFERENCE block_ref);
+int oufs_deallocate_inode(INODE_REFERENCE inode_ref);
 
 // Helper functions to be provided
 int oufs_find_open_bit(unsigned char value);
