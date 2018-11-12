@@ -449,13 +449,13 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
   INODE_REFERENCE lastref = 0;
 
   // Tokenize the path
-  char *token = strtok(listdir, "/");
-  char lasttoken[MAX_PATH_LENGTH];
-  memset(lasttoken, 0, MAX_PATH_LENGTH);
+  char token[FILE_NAME_SIZE];
+  token = strtok(listdir, "/");
+  char lasttoken[FILE_NAME_SIZE];
+  memset(lasttoken, 0, FILE_NAME_SIZE);
   lasttoken[0] = '/';
   while (token != NULL)
   {
-
     // Check if the expected token exists in this directory
     int flag = 0;
     vdisk_read_block(current_block, &theblock);
