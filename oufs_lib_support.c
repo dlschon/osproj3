@@ -632,6 +632,8 @@ int oufs_mkdir(char *cwd, char *path)
   new_inode.type = IT_DIRECTORY;
   new_inode.n_references = 1;
   new_inode.data[0] = new_dir_block_ref;
+  for (int i = 1; i < BLOCKS_PER_INODE; i++)
+    new_inode.data[i] = UNALLOCATED_BLOCK;
   new_inode.size = 2;
   oufs_write_inode_by_reference(new_inode_ref, &new_inode);
 
