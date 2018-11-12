@@ -224,7 +224,9 @@ int oufs_deallocate_block(BLOCK_REFERENCE block_ref)
   block.master.block_allocated_flag[block_byte] &= !(1 << block_bit);
 
   if(debug)
-    fprintf(stderr, "Allocating block=%d\n", block_ref);
+    fprintf(stderr, "Deallocating block=%d (%d)\n", block_byte, block_bit);
+  if(debug)
+    fprintf(stderr, "Deallocating block=%d\n", block_ref);
 
   // Write out the updated master block
   vdisk_write_block(MASTER_BLOCK_REFERENCE, &block);
@@ -251,7 +253,9 @@ int oufs_deallocate_inode(INODE_REFERENCE inode_ref)
   block.master.inode_allocated_flag[inode_byte] &= !(1 << inode_bit);
 
   if(debug)
-    fprintf(stderr, "Allocating inode=%d\n", inode_ref);
+    fprintf(stderr, "Deallocating inode=%d (%d)\n", inode_byte, inode_bit);
+  if(debug)
+    fprintf(stderr, "Deallocating inode=%d\n", inode_ref);
 
   // Write out the updated master block
   vdisk_write_block(MASTER_BLOCK_REFERENCE, &block);
@@ -733,6 +737,11 @@ int oufs_rmdir(char *cwd, char *path)
       fprintf(stderr, "rmdir: cannot remove . or ..\n");
     return -1;
   }
+
+  // Remove inode properties
+  child_inode.data[0] = 0;
+  child_inode.type = IT_NONE;
+  oufs_write_inode_by_reference(child_inode_ref, &child_inode);
 
   // Deallocate the block and inode in the master block
   oufs_deallocate_inode(child_inode_ref);
