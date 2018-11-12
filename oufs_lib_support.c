@@ -557,7 +557,7 @@ int oufs_list(char *cwd, char *path)
     if (theblock.directory.entry[i].inode_reference != UNALLOCATED_INODE)
     {
       // Add name to the list
-      filelist[i] = theblock.directory.entry[i].name;
+      filelist[numFiles] = theblock.directory.entry[i].name;
       numFiles++;
     }
   }
