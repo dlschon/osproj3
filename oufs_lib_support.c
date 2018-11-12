@@ -410,11 +410,11 @@ int oufs_format_disk(char  *virtual_disk_name)
     vdisk_read_block(inode_block_ref, &inode_block);
     for (int i = 0; i < INODES_PER_BLOCK; i++)
     {
-      theblock.inodes.inode[i].type = IT_NONE;
-      theblock.inodes.inode[i].n_references = 0;
+      inode_block.inodes.inode[i].type = IT_NONE;
+      inode_block.inodes.inode[i].n_references = 0;
       for (int j = 0; j < BLOCKS_PER_INODE; j++)
-        theblock.inodes.inode[i].data[j] = UNALLOCATED_BLOCK;
-      theblock.inodes.inode[i].size = 0;
+        inode_block.inodes.inode[i].data[j] = UNALLOCATED_BLOCK;
+      inode_block.inodes.inode[i].size = 0;
     }
     vdisk_write_block(inode_block_ref, &inode_block);
   }
