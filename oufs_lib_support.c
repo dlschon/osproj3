@@ -3,7 +3,7 @@
 #include <string.h>
 #include "oufs_lib.h"
 
-#define debug 1
+#define debug 0
 
 /**
  * Read the ZPWD and ZDISK environment variables & copy their values into cwd and disk_name.
@@ -449,22 +449,22 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
   INODE_REFERENCE lastref = 0;
 
   // Tokenize the path
-  char token[FILE_NAME_SIZE];
-  token = strtok(listdir, "/");
+  char* token = strtok(listdir, "/");
   char lasttoken[FILE_NAME_SIZE];
-  memset(lasttoken, 0, FILE_NAME_SIZE);
+  memset(lasttoken, '\0', FILE_NAME_SIZE);
   lasttoken[0] = '/';
   while (token != NULL)
   {
     // Check if the expected token exists in this directory
     int flag = 0;
     vdisk_read_block(current_block, &theblock);
-    printf("looking for %s\n", token);
+    printf("looking for '%s'\n", token);
     for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
     {
       if (theblock.directory.entry[i].inode_reference != UNALLOCATED_INODE)
       {
-        printf("%s...\n", theblock.directory.entry[i].name);
+        printf("'%s'...\n", theblock.directory.entry[i].name);
+        printf("strcmp: %d\n", strcmp(theblock.directory.entry[i].name, token));
         if (!strcmp(theblock.directory.entry[i].name, token))
         {
           // found it!
@@ -658,7 +658,8 @@ int oufs_mkdir(char *cwd, char *path)
     if (theblock.directory.entry[i].inode_reference == UNALLOCATED_INODE)
     {
       // Set the empty entry to point to our new inode
-      strncpy(theblock.directory.entry[i].name, base, FILE_NAME_SIZE);
+      memset(theblock.directory.entry[i].name, '\0', FILE_NAME_SIZE);
+      strncpy(theblock.directory.entry[i].name, base, FILE_NAME_SIZE-1);
       theblock.directory.entry[i].inode_reference = new_inode_ref;
       wrote_entry = 1;
       vdisk_write_block(parent_block_ref, &theblock);
