@@ -398,9 +398,26 @@ int oufs_format_disk(char  *virtual_disk_name)
     vdisk_write_block(i, &theblock);
   }
 
-  // Allocate master block, 8 inode blocks, and first data block
-  for (int i = 0; i < N_INODE_BLOCKS + 2; i++)
-    oufs_allocate_new_block();
+  // Allocate master block
+  oufs_allocate_new_block();
+
+  // Allocate 8 inode blocks
+  BLOCK_REFERENCE inode_block_ref;
+  BLOCK inode_block;
+  for (int i = 0; i < N_INODE_BLOCKS; i++)
+  {
+    inode_block_ref = oufs_allocate_new_block();
+    vdisk_read_block(inode_block_ref, &inode_block);
+    theblock.inodes.inode[0].type = IT_NONE;
+    theblock.inodes.inode[0].n_references = 0;
+    for (int i = 0; i < BLOCKS_PER_INODE; i++)
+      new_inode.data[i] = UNALLOCATED_BLOCK;
+    theblock.inodes.inode[0].size = 0;
+    vdisk_write_block(inode_block_ref, &inode_block);
+  }
+
+  // Allocate first data block
+  BLOCK_REFERENCE first_data_block = oufs_allocate_new_block();
 
   // Mark first inode as allocated
   INODE_REFERENCE ref = oufs_allocate_new_inode();
@@ -415,9 +432,9 @@ int oufs_format_disk(char  *virtual_disk_name)
   vdisk_write_block(first_block, &theblock);
 
   // Make the directory in the first open data
-  vdisk_read_block(N_INODE_BLOCKS + 1, &theblock);
+  vdisk_read_block(first_data_block, &theblock);
   oufs_clean_directory_block(ref, ref, &theblock);
-  vdisk_write_block(N_INODE_BLOCKS + 1, &theblock);
+  vdisk_write_block(first_data_block, &theblock);
 
   // Close the virtual disk
   vdisk_disk_close();
@@ -632,8 +649,6 @@ int oufs_mkdir(char *cwd, char *path)
   new_inode.type = IT_DIRECTORY;
   new_inode.n_references = 1;
   new_inode.data[0] = new_dir_block_ref;
-  for (int i = 1; i < BLOCKS_PER_INODE; i++)
-    new_inode.data[i] = UNALLOCATED_BLOCK;
   new_inode.size = 2;
   oufs_write_inode_by_reference(new_inode_ref, &new_inode);
 
