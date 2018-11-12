@@ -776,6 +776,18 @@ int oufs_rmdir(char *cwd, char *path)
       break;
     }
   }
+
+  // Reset all directory entries in child
+  BLOCK child_block;
+  vdisk_read_block(child_block_ref, &child_block);
+  for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
+  {
+    strncpy(child_block.directory.entry[i].name, "", FILE_NAME_SIZE);
+    child_block.directory.entry[i].inode_reference = UNALLOCATED_INODE;
+
+    child_inode.size = 0;
+    vdisk_write_block(child_block_ref, &child_block);
+  }
   
   if (!removed_entry)
   {
