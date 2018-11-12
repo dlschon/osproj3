@@ -401,28 +401,14 @@ int oufs_format_disk(char  *virtual_disk_name)
   // Allocate master block
   oufs_allocate_new_block();
 
-  // Allocate 8 inode blocks
-  BLOCK_REFERENCE inode_block_ref;
-  BLOCK inode_block;
+  // Allocate 8 inode blocks, but not the inodes
   for (int i = 0; i < N_INODE_BLOCKS; i++)
-  {
-    inode_block_ref = oufs_allocate_new_block();
-    vdisk_read_block(inode_block_ref, &inode_block);
-    for (int i = 0; i < INODES_PER_BLOCK; i++)
-    {
-      inode_block.inodes.inode[i].type = IT_NONE;
-      inode_block.inodes.inode[i].n_references = 0;
-      for (int j = 0; j < BLOCKS_PER_INODE; j++)
-        inode_block.inodes.inode[i].data[j] = UNALLOCATED_BLOCK;
-      inode_block.inodes.inode[i].size = 0;
-    }
-    vdisk_write_block(inode_block_ref, &inode_block);
-  }
+    oufs_allocate_new_block();
 
   // Allocate first data block
   BLOCK_REFERENCE first_data_block = oufs_allocate_new_block();
 
-  // Mark first inode as allocated
+  // Allocate the first inode
   INODE_REFERENCE ref = oufs_allocate_new_inode();
   BLOCK_REFERENCE first_block = 1;
 
@@ -431,6 +417,8 @@ int oufs_format_disk(char  *virtual_disk_name)
   theblock.inodes.inode[0].type = IT_DIRECTORY;
   theblock.inodes.inode[0].n_references = 1;
   theblock.inodes.inode[0].data[0] = N_INODE_BLOCKS + 1;
+  for (int i = 1; i < BLOCKS_PER_INODE; i++)
+    theblock.inodes.inode[0].data[i] = UNALLOCATED_BLOCK;
   theblock.inodes.inode[0].size = 2;
   vdisk_write_block(first_block, &theblock);
 
@@ -652,6 +640,8 @@ int oufs_mkdir(char *cwd, char *path)
   new_inode.type = IT_DIRECTORY;
   new_inode.n_references = 1;
   new_inode.data[0] = new_dir_block_ref;
+  for (int i = 1; i < BLOCKS_PER_INODE; i++)
+    inode_block.inodes.inode[i].data[0] = UNALLOCATED_BLOCK;
   new_inode.size = 2;
   oufs_write_inode_by_reference(new_inode_ref, &new_inode);
 
