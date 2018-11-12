@@ -3,7 +3,7 @@
 #include <string.h>
 #include "oufs_lib.h"
 
-#define debug 0
+#define debug 1
 
 /**
  * Read the ZPWD and ZDISK environment variables & copy their values into cwd and disk_name.
@@ -369,7 +369,7 @@ char* oufs_relative_path(char* cwd, char* path, char* rel_path)
     }
     else
     {
-      // Path is relative. Concat cwd and path into listdir
+      // Path is relative. Concat cwd and path into list_dir
       memset(rel_path, 0, MAX_PATH_LENGTH);
       strcat(rel_path, cwd);
       strcat(rel_path, "/");
@@ -458,17 +458,13 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
     // Check if the expected token exists in this directory
     int flag = 0;
     vdisk_read_block(current_block, &theblock);
-    printf("looking for '%s'\n", token);
     for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
     {
       if (theblock.directory.entry[i].inode_reference != UNALLOCATED_INODE)
       {
-        printf("'%s'...\n", theblock.directory.entry[i].name);
-        printf("strcmp: %d\n", strcmp(theblock.directory.entry[i].name, token));
         if (!strcmp(theblock.directory.entry[i].name, token))
         {
           // found it!
-          printf("It's a match!\n");
           flag = 1;
           lastref = ref;
           ref = theblock.directory.entry[i].inode_reference;
@@ -490,9 +486,10 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
       return 0;
     }
 
+    // Save the token into the last token variable
+    memset(lasttoken, '\0', FILE_NAME_SIZE);
+    strncpy(lasttoken, token, FILE_NAME_SIZE);
     // Try to get the next token
-    memset(lasttoken, 0, MAX_PATH_LENGTH);
-    strncpy(lasttoken, token, sizeof(lasttoken));
     token = strtok(NULL, "/");
 
   } // end while
