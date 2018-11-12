@@ -3,7 +3,7 @@
 #include <string.h>
 #include "oufs_lib.h"
 
-#define debug 1
+#define debug 0
 
 /**
  * Read the ZPWD and ZDISK environment variables & copy their values into cwd and disk_name.
@@ -568,7 +568,7 @@ int oufs_list(char *cwd, char *path)
   // Print the sorted list
   for (int i = 0; i < numFiles; i++)
   {
-    fprintf(stderr, "%s/\n", filelist[i]);
+    printf("%s/\n", filelist[i]);
   }
 
   return 0;
