@@ -3,7 +3,7 @@
 #include <string.h>
 #include "oufs_lib.h"
 
-#define debug 0
+#define debug 1
 
 /**
  * Read the ZPWD and ZDISK environment variables & copy their values into cwd and disk_name.
@@ -459,13 +459,16 @@ int oufs_find_file(char *cwd, char * path, INODE_REFERENCE *parent, INODE_REFERE
     // Check if the expected token exists in this directory
     int flag = 0;
     vdisk_read_block(current_block, &theblock);
+    printf("looking for %s\n", token);
     for (int i = 0; i < DIRECTORY_ENTRIES_PER_BLOCK; i++)
     {
       if (theblock.directory.entry[i].inode_reference != UNALLOCATED_INODE)
       {
+        printf("%s...\n", theblock.directory.entry[i].name);
         if (!strcmp(theblock.directory.entry[i].name, token))
         {
           // found it!
+          printf("It's a match!\n");
           flag = 1;
           lastref = ref;
           ref = theblock.directory.entry[i].inode_reference;
