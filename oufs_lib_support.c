@@ -3,7 +3,7 @@
 #include <string.h>
 #include "oufs_lib.h"
 
-#define debug 1
+#define debug 0
 
 /**
  * Read the ZPWD and ZDISK environment variables & copy their values into cwd and disk_name.
