@@ -568,7 +568,7 @@ int oufs_list(char *cwd, char *path)
   // Print the sorted list
   for (int i = 0; i < numFiles; i++)
   {
-    fprintf(stderr, "%s\n", filelist[i]);
+    fprintf(stderr, "%s/\n", filelist[i]);
   }
 
   return 0;
