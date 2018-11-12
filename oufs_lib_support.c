@@ -738,15 +738,15 @@ int oufs_rmdir(char *cwd, char *path)
     return -1;
   }
 
-  // Remove inode properties
-  child_inode.data[0] = 0;
-  child_inode.type = IT_NONE;
-  oufs_write_inode_by_reference(child_inode_ref, &child_inode);
-
   // Deallocate the block and inode in the master block
   oufs_deallocate_inode(child_inode_ref);
   BLOCK_REFERENCE child_block_ref = child_inode.data[0];
   oufs_deallocate_block(child_block_ref);
+
+  // Remove inode properties
+  child_inode.data[0] = 0;
+  child_inode.type = IT_NONE;
+  oufs_write_inode_by_reference(child_inode_ref, &child_inode);
 
   // Read data for parent of deleted directory
   INODE parent_inode;
