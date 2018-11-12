@@ -223,6 +223,9 @@ int oufs_deallocate_block(BLOCK_REFERENCE block_ref)
   // Flip the desired bit to 0
   block.master.block_allocated_flag[block_byte] &= !(1 << block_bit);
 
+  if(debug)
+    fprintf(stderr, "Allocating block=%d\n", block_ref);
+
   // Write out the updated master block
   vdisk_write_block(MASTER_BLOCK_REFERENCE, &block);
 
@@ -246,6 +249,9 @@ int oufs_deallocate_inode(INODE_REFERENCE inode_ref)
 
   // Flip the desired bit to 0
   block.master.inode_allocated_flag[inode_byte] &= !(1 << inode_bit);
+
+  if(debug)
+    fprintf(stderr, "Allocating inode=%d\n", inode_ref);
 
   // Write out the updated master block
   vdisk_write_block(MASTER_BLOCK_REFERENCE, &block);
