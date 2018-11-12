@@ -221,7 +221,7 @@ int oufs_deallocate_block(BLOCK_REFERENCE block_ref)
   int block_byte = block_ref >> 3;
 
   // Flip the desired bit to 0
-  block.master.block_allocated_flag[block_byte] &= !(1 << block_bit);
+  block.master.block_allocated_flag[block_byte] &= ~(1 << block_bit);
 
   if(debug)
     fprintf(stderr, "Deallocating block=%d (%d)\n", block_byte, block_bit);
@@ -250,7 +250,7 @@ int oufs_deallocate_inode(INODE_REFERENCE inode_ref)
   int inode_byte = inode_ref >> 3;
 
   // Flip the desired bit to 0
-  block.master.inode_allocated_flag[inode_byte] &= !(1 << inode_bit);
+  block.master.inode_allocated_flag[inode_byte] &= ~(1 << inode_bit);
 
   if(debug)
     fprintf(stderr, "Deallocating inode=%d (%d)\n", inode_byte, inode_bit);
